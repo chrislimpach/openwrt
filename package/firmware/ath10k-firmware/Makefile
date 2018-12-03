@@ -42,6 +42,15 @@ $(Package/ath10k-firmware-default)
   TITLE:=ath10k-CT firmware for QCA9887 devices
 endef
 
+#https://github.com/kvalo/ath10k-firmware/raw/master/QCA988X/hw2.0/10.2.4-1.0/firmware-5.bin_10.2.4-1.0-00043
+define Download/ath10k-firmware-qca988x
+  URL:=https://github.com/kvalo/ath10k-firmware/raw/master/QCA988X/hw2.0/10.2.4-1.0
+  URL_FILE:=firmware-5.bin_10.2.4-1.0-00043
+  FILE:=firmware-5.bin_10.2.4-1.0-00043
+  HASH:=2e205f78d818fb8592df447d2d4a2e175cf57117d32822e9a1d87275ee8778c7
+endef
+$(eval $(call Download,ath10k-firmware-qca988x))
+
 define Package/ath10k-firmware-qca988x
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k firmware for QCA988x devices
@@ -433,7 +442,7 @@ define Package/ath10k-firmware-qca988x/install
 		$(PKG_BUILD_DIR)/QCA988X/hw2.0/board.bin \
 		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/
 	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA988X/hw2.0/10.2.4-1.0/firmware-5.bin_10.2.4-1.0-00033 \
+		$(DL_DIR)/firmware-5.bin_10.2.4-1.0-00043 \
 		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/firmware-5.bin
 endef
 
