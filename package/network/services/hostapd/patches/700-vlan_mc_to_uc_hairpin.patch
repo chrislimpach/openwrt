@@ -1,0 +1,65 @@
+--- a/src/ap/vlan_full.c
++++ b/src/ap/vlan_full.c
+@@ -13,6 +13,7 @@
+ /* Avoid conflicts due to NetBSD net/if.h if_type define with driver.h */
+ #undef if_type
+ #include <sys/ioctl.h>
++#include <fcntl.h>
+ 
+ #include "utils/common.h"
+ #include "drivers/priv_netlink.h"
+@@ -357,6 +358,42 @@ static int br_getnumports(const char *br
+ }
+ 
+ 
++static void system_set_sysctl(const char *path, const char *val)
++{
++	int fd;
++
++	fd = open(path, O_WRONLY);
++	if (fd < 0) {
++		wpa_printf(MSG_ERROR, "SYSCTL: %s: open %s failed: %s",
++			   __func__, path, strerror(errno));
++		return;
++	}
++
++	if (write(fd, val, strlen(val)) != strlen(val))
++		wpa_printf(MSG_ERROR, "SYSCTL: %s: write '%s' to %s failed: %s",
++			   __func__, val, path, strerror(errno));
++	close(fd);
++}
++
++static void system_set_dev_sysctl(const char *path, const char *device,
++				  const char *val)
++{
++	char dev_buf[PATH_MAX];
++	os_snprintf(dev_buf, sizeof(dev_buf), path, device);
++	system_set_sysctl(dev_buf, val);
++}
++
++static void vlan_mc_to_uc_hairpin(const char *vlan_ifname)
++{
++
++	wpa_printf(MSG_DEBUG, "SYSCTL: %s: setup interface %s", __func__,
++		   vlan_ifname);
++	system_set_dev_sysctl("/sys/class/net/%s/brport/multicast_to_unicast",
++			      vlan_ifname, "1");
++	system_set_dev_sysctl("/sys/class/net/%s/brport/hairpin_mode",
++			      vlan_ifname, "1");
++}
++
+ static void vlan_newlink_tagged(int vlan_naming, const char *tagged_interface,
+ 				const char *br_name, int vid,
+ 				struct hostapd_data *hapd)
+@@ -449,8 +486,10 @@ void vlan_newlink(const char *ifname, st
+ 
+ 		vlan_get_bridge(br_name, hapd, untagged);
+ 
+-		if (!br_addif(br_name, ifname))
++		if (!br_addif(br_name, ifname)) {
+ 			vlan->clean |= DVLAN_CLEAN_WLAN_PORT;
++			vlan_mc_to_uc_hairpin(ifname);
++		}
+ 	}
+ 
+ 	for (i = 0; i < MAX_NUM_TAGGED_VLAN && tagged[i]; i++) {

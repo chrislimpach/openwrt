@@ -19,6 +19,7 @@ include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
 define Package/netifd
+  VERSION:=9999cl1-$(PKG_VERSION)-$(PKG_RELEASE)
   SECTION:=base
   CATEGORY:=Base system
   DEPENDS:=+libuci +libnl-tiny +libubus +ubus +ubusd +jshn +libubox

@@ -137,6 +137,7 @@ DRV_DEPENDS:=+PACKAGE_kmod-cfg80211:libnl-tiny
 
 
 define Package/hostapd/Default
+  VERSION:=9999cl1-$(PKG_VERSION)-$(PKG_RELEASE)
   SECTION:=net
   CATEGORY:=Network
   TITLE:=IEEE 802.1x Authenticator
@@ -188,6 +189,7 @@ endef
 
 
 define Package/wpad/Default
+  VERSION:=9999cl1-$(PKG_VERSION)-$(PKG_RELEASE)
   SECTION:=net
   CATEGORY:=Network
   TITLE:=IEEE 802.1x Authenticator/Supplicant
