@@ -1,0 +1,16 @@
+--- a/scripts/netifd-wireless.sh
++++ b/scripts/netifd-wireless.sh
+@@ -252,10 +252,12 @@ wireless_vif_parse_encryption() {
+ _wireless_set_brsnoop_isolation() {
+ 	local multicast_to_unicast="$1"
+ 	local isolate
++	local vlan_bridge
+ 
+ 	json_get_var isolate isolate
++	json_get_var vlan_bridge vlan_bridge
+ 
+-	[ ${isolate:-0} -gt 0 -o -z "$network_bridge" ] && return
++	[ ${isolate:-0} -gt 0 -o -z "$network_bridge$vlan_bridge" ] && return
+ 	[ ${multicast_to_unicast:-1} -gt 0 ] && json_add_boolean isolate 1
+ }
+ 
