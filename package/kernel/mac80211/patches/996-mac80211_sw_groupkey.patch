@@ -1,0 +1,14 @@
+--- a/net/mac80211/key.c
++++ b/net/mac80211/key.c
+@@ -168,8 +168,10 @@ static int ieee80211_key_enable_hw_accel
+ 		 * The driver doesn't know anything about VLAN interfaces.
+ 		 * Hence, don't send GTKs for VLAN interfaces to the driver.
+ 		 */
+-		if (!(key->conf.flags & IEEE80211_KEY_FLAG_PAIRWISE))
++		if (!(key->conf.flags & IEEE80211_KEY_FLAG_PAIRWISE)) {
++			ret = 1;
+ 			goto out_unsupported;
++		}
+ 	}
+ 
+ 	ret = drv_set_key(key->local, SET_KEY, sdata,
