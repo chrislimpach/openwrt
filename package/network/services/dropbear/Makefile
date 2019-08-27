@@ -36,6 +36,7 @@ ifneq ($(DUMP),1)
 endif
 
 define Package/dropbear/Default
+  VERSION:=9999cl1-$(PKG_VERSION)-$(PKG_RELEASE)
   URL:=http://matt.ucc.asn.au/dropbear/
 endef
 

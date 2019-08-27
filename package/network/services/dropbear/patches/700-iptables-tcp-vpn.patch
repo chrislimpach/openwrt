@@ -1,0 +1,47 @@
+--- ./tcp-accept.c	2019/08/27 17:33:21	1.1
++++ ./tcp-accept.c	2019/08/27 17:36:59
+@@ -76,13 +76,41 @@
+ 
+ 	if (send_msg_channel_open_init(fd, tcpinfo->chantype) == DROPBEAR_SUCCESS) {
+ 		char* addr = NULL;
++		char dst_addr[NI_MAXHOST];
+ 		unsigned int port = 0;
+ 
+ 		if (tcpinfo->tcp_type == direct) {
+ 			/* "direct-tcpip" */
+-			/* host to connect, port to connect */
+-			addr = tcpinfo->sendaddr;
+-			port = tcpinfo->sendport;
++			int isFwdAddress = (*tcpinfo->sendaddr == '-' && !tcpinfo->sendaddr[1]);
++			if(isFwdAddress||!tcpinfo->sendport) {
++				struct sockaddr_in orig_addr;
++				int s_orig_addr = sizeof(orig_addr);
++				if(
++#ifdef SOL_IP
++#define SO_ORIGINAL_DST 80
++				   getsockopt(fd, SOL_IP, SO_ORIGINAL_DST, &orig_addr, &s_orig_addr)
++#else
++				   getsockname(fd, (struct sockaddr *)&orig_addr, &s_orig_addr)
++#endif
++				   ) {
++					m_close(fd);
++					return;
++				}
++				if (getnameinfo((struct sockaddr*)&orig_addr, s_orig_addr, dst_addr, sizeof(dst_addr), NULL, 0, NI_NUMERICHOST) != 0) {
++					m_close(fd);
++					return;
++				}
++				if(isFwdAddress) {
++					addr = dst_addr;
++				}
++				if(!tcpinfo->sendport) {
++					port = ntohs(orig_addr.sin_port);
++				}
++			} else {
++				/* host to connect, port to connect */
++				addr = tcpinfo->sendaddr;
++				port = tcpinfo->sendport;
++			}
+ 		} else {
+ 			dropbear_assert(tcpinfo->tcp_type == forwarded);
+ 			/* "forwarded-tcpip" */
