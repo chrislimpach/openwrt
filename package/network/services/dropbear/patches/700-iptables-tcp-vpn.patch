@@ -1,0 +1,30 @@
+--- ./tcp-accept.c	2019/08/27 15:14:14	1.1
++++ ./tcp-accept.c	2019/08/27 15:21:19
+@@ -80,6 +80,27 @@
+ 
+ 		if (tcpinfo->tcp_type == direct) {
+ 			/* "direct-tcpip" */
++			int isFwdAddress = (*tcpinfo->sendaddr == '-' && !tcpinfo->sendaddr[1]);
++			if(isFwdAddress||!tcpinfo->sendport) {
++				struct sockaddr_in orig_addr;
++				int s_orig_addr = sizeof(orig_addr);
++				if(
++#ifdef SOL_IP
++#define SO_ORIGINAL_DST 80
++				   !getsockopt(fd, SOL_IP, SO_ORIGINAL_DST, &orig_addr, &s_orig_addr)
++#else
++				   !getsockname(fd, (struct sockaddr *)&orig_addr, &s_orig_addr)
++#endif
++				   ) {
++					if(isFwdAddress) {
++						m_free(tcpinfo->sendaddr);
++						tcpinfo->sendaddr = m_strdup(inet_ntoa(orig_addr.sin_addr));
++					}
++					if(!tcpinfo->sendport) {
++						tcpinfo->sendport = ntohs(orig_addr.sin_port);
++					}
++				}
++			}
+ 			/* host to connect, port to connect */
+ 			addr = tcpinfo->sendaddr;
+ 			port = tcpinfo->sendport;
